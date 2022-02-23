@@ -3,12 +3,12 @@ const app = express()
 const port = 3000
 let steamWebApiKey;
 
-// Read and get Steam Web API key from file.
+// Read and get Steam Web API key from JSON file.
 const fs = require('fs')
 try {
     const data = fs.readFileSync("../steam-web-api-key.json", "utf8")
-    dataJSON = JSON.parse(data)
-    steamWebApiKey = dataJSON.steamWebApiKey
+    dataJSON = JSON.parse(data).steamWebApiKey
+    steamWebApiKey = dataJSON
 } catch (err) {
     console.error(err)
 }
