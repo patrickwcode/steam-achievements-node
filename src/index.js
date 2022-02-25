@@ -66,8 +66,8 @@ app.get('/applist', async (req, res) => {
     res.send(await getAppList())
 })
 
-app.get('/app', (req, res) => {
-    res.send(cachedAppList[req.query.name])
+app.get('/applist-cached', (req, res) => {
+    res.send(cachedAppList)
 })
 
 init = async () => {
