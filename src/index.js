@@ -27,6 +27,19 @@ getGameSchema = async (id) => {
     return achievements
 }
 
+getAppList = async () => {
+    let appList = await steam.getAppList()
+    let sortedAppList = {}
+    appList.forEach(app => {
+        const appIdString = `${app.appid}`
+        sortedAppList[app.name.toLowerCase()] = {
+            appId: appIdString,
+            appName: app.name
+        }
+    })
+    return sortedAppList
+}
+
 getSteamAchievements = async (id) => {
     let gameAchievements = await getGameAchievements(id)
     let gameSchema = await getGameSchema(id)
@@ -50,6 +63,10 @@ getSteamAchievements = async (id) => {
 
 app.get('/achievements', async (req, res) => {
     res.send(await getSteamAchievements(req.query.id))
+})
+
+app.get('/applist', async (req, res) => {
+    res.send(await getAppList())
 })
 
 app.listen(10000)
