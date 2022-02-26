@@ -37,7 +37,7 @@ getAppList = async () => {
     return appListToLowerCase
 }
 
-getSteamAchievements = async (id) => {
+getSteamAchievementsById = async (id) => {
     let gameAchievements = await getGameAchievements(id)
     let gameSchema = await getGameSchema(id)
     let gameSchemaKeys
@@ -58,16 +58,21 @@ getSteamAchievements = async (id) => {
     return steamAchievements
 }
 
+getSteamAchievementsByName = async (name) => {
+    let appId = cachedAppList[name].appid
+    return await getSteamAchievementsById(appId)
+}
+
 app.get('/achievements', async (req, res) => {
-    res.send(await getSteamAchievements(req.query.id));
+    if (req.query.id) {
+        res.send(await getSteamAchievementsById(req.query.id))
+    } else {
+        res.send(await getSteamAchievementsByName(req.query.name))
+    }
 })
 
-app.get('/applist', async (req, res) => {
-    res.send(await getAppList())
-})
-
-app.get('/applist-cached', (req, res) => {
-    res.send(cachedAppList)
+app.get('/applist', (req, res) => {
+    res.send(cachedAppList[req.query.name])
 })
 
 init = async () => {
