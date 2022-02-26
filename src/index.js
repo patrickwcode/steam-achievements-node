@@ -49,7 +49,7 @@ getSteamAchievementsById = async (id) => {
         steamAchievements.push({
             id: counter + 1,
             name: gameSchemaKeys.displayName,
-            percent: value.toFixed(1),
+            percent: gameAchievements[gameSchemaKeys.name],
             description: gameSchemaKeys.description,
             iconUrl: gameSchemaKeys.icon
         })
@@ -62,6 +62,14 @@ getSteamAchievementsByName = async (name) => {
     let appId = cachedAppList[name].appid
     return await getSteamAchievementsById(appId)
 }
+
+app.get('/game-achievements', async (req, res) => {
+    res.send(await getGameAchievements(req.query.id))
+})
+
+app.get('/game-schema', async (req, res) => {
+    res.send(await getGameSchema(req.query.id))
+})
 
 app.get('/achievements', async (req, res) => {
     if (req.query.id) {
