@@ -14,15 +14,13 @@ const app = express()
 let cachedAppList = {}
 
 getGameAchievements = async (id) => {
-    let achievements = await steam.getGameAchievements(id)
-    return achievements
+    return await steam.getGameAchievements(id)
 }
 
 getGameSchema = async (id) => {
     let schema = await steam.getGameSchema(id)
-    availableGameStats = schema['availableGameStats']
-    achievements = availableGameStats['achievements']
-    return achievements
+    let availableGameStats = schema['availableGameStats']
+    return availableGameStats['achievements']
 }
 
 getAppList = async () => {
@@ -63,14 +61,6 @@ getSteamAchievementsByName = async (name) => {
     return await getSteamAchievementsById(appId)
 }
 
-app.get('/game-achievements', async (req, res) => {
-    res.send(await getGameAchievements(req.query.id))
-})
-
-app.get('/game-schema', async (req, res) => {
-    res.send(await getGameSchema(req.query.id))
-})
-
 app.get('/achievements', async (req, res) => {
     if (req.query.id) {
         res.send(await getSteamAchievementsById(req.query.id))
@@ -85,7 +75,7 @@ app.get('/applist', (req, res) => {
 
 init = async () => {
     cachedAppList = await getAppList()
-    app.listen (10000)
+    app.listen(10000)
 }
 
 init()
