@@ -36,23 +36,24 @@ getAppList = async () => {
 };
 
 getSteamAchievementsById = async (id) => {
-  let gameAchievements = await getGameAchievements(id);
-  let gameSchema = await getGameSchema(id);
-  let gameSchemaKeys;
+  const gameAchievements = await getGameAchievements(id);
+  const gameSchemaArray = await getGameSchema(id);
   let steamAchievements = [];
   let counter = 0;
 
-  Object.entries(gameAchievements).forEach(([key, value]) => {
-    gameSchemaKeys = gameSchema[Object.keys(gameSchema)[counter]];
-    steamAchievements.push({
+  gameSchemaArray.forEach((gameSchema) => {
+    const percent = gameAchievements[gameSchema.name];
+    const achievement = {
       id: counter + 1,
-      name: gameSchemaKeys.displayName,
-      percent: gameAchievements[gameSchemaKeys.name],
-      description: gameSchemaKeys.description,
-      iconUrl: gameSchemaKeys.icon,
-    });
+      name: gameSchema.displayName,
+      percent: percent,
+      description: gameSchema.description,
+      iconUrl: gameSchema.icon,
+    };
+    steamAchievements.push(achievement);
     counter++;
   });
+
   return steamAchievements;
 };
 
