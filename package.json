@@ -12,5 +12,8 @@
   },
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "prettier": "^2.5.1"
+  }
 }
