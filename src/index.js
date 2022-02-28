@@ -74,7 +74,7 @@ app.get("/achievements", async (req, res) => {
   }
 });
 
-app.get("/applist", async (req, res) => {
+app.get("/applist", (req, res) => {
   res.send(cachedAppList[req.query.name]);
 });
 
