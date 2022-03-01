@@ -1,11 +1,11 @@
 const express = require("express");
 const process = require("process");
 const steamWebApiKey = process.env.STEAM_WEB_API_KEY;
-
 const SteamAPI = require("steamapi");
-
 const steam = new SteamAPI(steamWebApiKey);
 const app = express();
+const server = app.listen();
+server.setTimeout(10000);
 let cachedAppList = {};
 let timeoutController = null;
 
@@ -64,8 +64,13 @@ app.get("/achievements", async (req, res) => {
       res.send(await getSteamAchievementsById(req.query.id));
     } else if (req.query.name) {
       res.send(await getSteamAchievementsByName(req.query.name));
+    } else {
+      res
+        .status(400)
+        .send("Bad Request. Required parameters 'id' or 'name' are missing.");
     }
   } catch (err) {
+    res.status(400).send(err);
     console.error(err);
   }
 });
