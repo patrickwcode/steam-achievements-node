@@ -1,17 +1,13 @@
 const express = require("express");
-const port = 3000;
-let steamWebApiKey = process.env.STEAM_WEB_API_KEY;
-
-// Read and get Steam Web API key from JSON file.
-const fs = require("fs");
-const data = fs.readFileSync("steam-web-api-key.json", "utf8");
-dataJSON = JSON.parse(data).steamWebApiKey;
-steamWebApiKey = dataJSON;
+const process = require("process");
+const steamWebApiKey = process.env.STEAM_WEB_API_KEY;
 
 const SteamAPI = require("steamapi");
+
 const steam = new SteamAPI(steamWebApiKey);
 const app = express();
 let cachedAppList = {};
+let timeoutController = null;
 
 getGameAchievements = async (id) => {
   return await steam.getGameAchievements(id);
@@ -66,7 +62,7 @@ app.get("/achievements", async (req, res) => {
   try {
     if (req.query.id) {
       res.send(await getSteamAchievementsById(req.query.id));
-    } else {
+    } else if (req.query.name) {
       res.send(await getSteamAchievementsByName(req.query.name));
     }
   } catch (err) {
