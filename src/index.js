@@ -70,13 +70,21 @@ app.get("/achievements", async (req, res) => {
         .send("Bad Request. Required parameters 'id' or 'name' are missing.");
     }
   } catch (err) {
-    res.status(400).send(err);
+    res.status(404).send(err + ". Error 404. Not found.");
     console.error(err);
   }
 });
 
 app.get("/applist", (req, res) => {
-  res.send(cachedAppList[req.query.name]);
+    if (cachedAppList[req.query.name] !== undefined) {
+      res.send(cachedAppList[req.query.name]);
+    } else if (!req.query.name){
+      res
+        .status(400)
+        .send("Bad Request. Required parameter 'name' is missing.");
+    } else {
+      res.status(404).send("Error 404. Not found.");
+    }
 });
 
 init = async () => {
