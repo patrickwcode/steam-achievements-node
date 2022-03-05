@@ -5,9 +5,7 @@ const SteamAPI = require("steamapi");
 const steam = new SteamAPI(steamWebApiKey);
 const app = express();
 const server = app.listen();
-server.setTimeout(10000);
 let cachedAppList = {};
-let timeoutController = null;
 
 getGameAchievements = async (id) => {
   return await steam.getGameAchievements(id);
@@ -64,10 +62,12 @@ app.get("/achievements", async (req, res) => {
       res.send(await getSteamAchievementsById(req.query.id));
     } else if (req.query.name) {
       res.send(await getSteamAchievementsByName(req.query.name));
-    } else {
+    } else if (!req.query.name || !req.query.id) {
       res
         .status(400)
         .send("Bad Request. Required parameters 'id' or 'name' are missing.");
+    } else {
+      res.status(500).send("Server error.")
     }
   } catch (err) {
     res.status(404).send(err + ". Error 404. Not found.");
@@ -76,14 +76,16 @@ app.get("/achievements", async (req, res) => {
 });
 
 app.get("/applist", (req, res) => {
-    if (cachedAppList[req.query.name] !== undefined) {
+    if (req.query.name && cachedAppList[req.query.name]) {
       res.send(cachedAppList[req.query.name]);
     } else if (!req.query.name){
       res
         .status(400)
         .send("Bad Request. Required parameter 'name' is missing.");
+    } else if (!cachedAppList[req.query.name]) {
+      res.status(404).send("Error 404. App not found.");
     } else {
-      res.status(404).send("Error 404. Not found.");
+      res.status(500).send("Server error.")
     }
 });
 
