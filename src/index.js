@@ -90,7 +90,11 @@ app.get("/applist", (req, res) => {
 });
 
 init = async () => {
-  cachedAppList = await getAppList();
+  try {
+    cachedAppList = await getAppList();
+  } catch (err) {
+    res.status(500).send("Servor error getting App List.")
+  }
   app.listen(10000);
 };
 
