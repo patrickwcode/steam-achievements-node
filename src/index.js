@@ -60,40 +60,68 @@ app.get("/achievements", async (req, res) => {
   try {
     if (req.query.id) {
       res.send(await getSteamAchievementsById(req.query.id));
+      return;
     } else if (req.query.name) {
       res.send(await getSteamAchievementsByName(req.query.name));
+      return;
     } else if (!req.query.name || !req.query.id) {
       res
         .status(400)
         .send("Bad Request. Required parameters 'id' or 'name' are missing.");
+      return;
     } else {
-      res.status(500).send("Server error.")
+      res.status(500).send("Server error.");
+      return;
     }
   } catch (err) {
     res.status(404).send(err + ". Error 404. Not found.");
     console.error(err);
+    return;
   }
 });
 
 app.get("/applist", (req, res) => {
-    if (req.query.name && cachedAppList[req.query.name]) {
-      res.send(cachedAppList[req.query.name]);
-    } else if (!req.query.name){
-      res
-        .status(400)
-        .send("Bad Request. Required parameter 'name' is missing.");
-    } else if (!cachedAppList[req.query.name]) {
-      res.status(404).send("Error 404. App not found.");
-    } else {
-      res.status(500).send("Server error.")
-    }
+  if (req.query.name && cachedAppList[req.query.name]) {
+    res.send(cachedAppList[req.query.name]);
+    return;
+  } else if (!req.query.name) {
+    res.status(400).send("Bad Request. Required parameter 'name' is missing.");
+    return;
+  } else if (!cachedAppList[req.query.name]) {
+    res.status(404).send("Error 404. App not found.");
+    return;
+  } else {
+    res.status(500).send("Server error.");
+    return;
+  }
+});
+
+app.get("/applist-filter", (req, res) => {
+  if (req.query.name) {
+    const filteredApps = Object.keys(cachedAppList)
+      .filter((key) => key.includes(req.query.name))
+      .reduce((apps, key) => {
+        apps[key] = cachedAppList[key];
+        return apps;
+      }, {});
+    res.send(filteredApps);
+  } else if (!req.query.name) {
+    res.status(400).send("Bad Request. Required parameter 'name' is missing.");
+    return;
+  } else if (!cachedAppList[req.query.name]) {
+    res.status(404).send("Error 404. App not found.");
+    return;
+  } else {
+    res.status(500).send("Server error.");
+    return;
+  }
 });
 
 init = async () => {
   try {
     cachedAppList = await getAppList();
   } catch (err) {
-    res.status(500).send("Servor error getting App List.")
+    console.log("Server error getting App List.");
   }
   app.listen(10000);
 };
