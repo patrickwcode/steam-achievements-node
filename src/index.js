@@ -6,7 +6,8 @@ const steam = new SteamAPI(steamWebApiKey);
 const app = express();
 const server = app.listen();
 let cachedAppList = {};
-const emojiRegex = /[\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f1e6}-\u{1f1ff}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}]/ug;
+const emojiRegex =
+    /[\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f1e6}-\u{1f1ff}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}]/gu;
 const idRegex = /^[0-9]+$/;
 
 getGameAchievements = async (id) => {
@@ -70,29 +71,43 @@ getSteamAchievementsByName = async (name) => {
 
 const isNullOrEmpty = (str) => {
     return str === undefined || str === null || str === "";
-}
+};
 
 const isIdValid = (id) => {
-    if (id > 0 && id !== " " && id !== "%20" && idRegex.test(id) && !emojiRegex.test(id) && id !== undefined) {
+    if (
+        id > 0 &&
+        id !== " " &&
+        id !== "%20" &&
+        idRegex.test(id) &&
+        !emojiRegex.test(id)
+    ) {
         return true;
     }
-}
+};
 
 const isNameValid = (name) => {
-    if (name !== " " && name !== "%20" && !emojiRegex.test(name) && name !== undefined) {
+    if (name !== " " && name !== "%20" && !emojiRegex.test(name)) {
         return true;
     }
-}
+};
 
 app.get("/achievements", async (req, res) => {
     const id = req.query.id;
     const name = req.query.name;
     if (isNullOrEmpty(id) && isNullOrEmpty(name)) {
-        res.status(400).send("Bad Request. Either the 'id' or 'name' query parameter must be set.");
+        res
+            .status(400)
+            .send(
+                "Bad Request. Either the 'id' or 'name' query parameter must be set."
+            );
         return;
     }
     if (!isIdValid(id) && !isNameValid(name)) {
-        res.status(400).send("Bad Request. Either the 'id' or 'name' query parameter must be set.");
+        res
+            .status(400)
+            .send(
+                "Bad Request. Either the 'id' or 'name' query parameter must be set."
+            );
         return;
     }
     try {
@@ -112,7 +127,7 @@ app.get("/achievements", async (req, res) => {
         res.status(404).send(err + `. Error 404. Not found.`);
         console.error(err);
     }
-    res.status(500).send("Internal Server Error.")
+    res.status(500).send("Internal Server Error.");
 });
 
 app.get("/applist", (req, res) => {
@@ -129,12 +144,13 @@ app.get("/applist", (req, res) => {
         res.status(404).send(`Error 404. [${name}] app not found.`);
         return;
     } else {
-        res.send(cachedAppList[name])
+        res.send(cachedAppList[name]);
     }
     res.status(500).send("Server error.");
 });
 
 app.get("/applist-filter", (req, res) => {
+    let counter = 0;
     const name = req.query.name;
     if (isNullOrEmpty(name)) {
         res.status(400).send("Bad Request. 'name' query parameter must be set.");
@@ -147,11 +163,14 @@ app.get("/applist-filter", (req, res) => {
     const filteredApps = Object.keys(cachedAppList)
         .filter((key) => key.includes(name))
         .reduce((apps, key) => {
-            apps[key] = cachedAppList[key];
-            return apps;
+            if (counter <= 60) {
+                apps[key] = cachedAppList[key];
+                counter++;
+                return apps;
+            }
         }, {});
+    // res.send(Object.keys(filteredApps).splice(1, 30));
     res.send(filteredApps);
-
     res.status(500).send("Server error.");
 });
 
