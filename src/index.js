@@ -30,15 +30,6 @@ const getAppList = async () => {
     return appListToLowerCase;
 };
 
-// Add test for this function for steamAchievementsById
-// use id = 440 for test suite
-// expect(getSteamAchievementsById(440)).to.equal({
-// name: "Team Fortress 2",
-// id: 440,
-// });
-
-// Check other functions for testing
-
 const getSteamAchievementsById = async (id) => {
     const gameAchievements = await getGameAchievements(id);
     const gameSchemaArray = await getGameSchema(id);
@@ -180,6 +171,7 @@ module.exports = {
     isIdValid,
     isNameValid,
     getSteamAchievementsById,
+    getSteamAchievementsByName,
 };
 
 const init = async () => {
