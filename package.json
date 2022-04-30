@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "chai-as-promised": "^7.1.1",
     "express": "5.0.0-beta.1",
     "steamapi": "^2.2.0"
   },
