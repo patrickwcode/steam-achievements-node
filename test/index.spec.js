@@ -1,4 +1,4 @@
-const {isIdValid, isNameValid, getSteamAchievementsById, getSteamAchievementsByName} = require("../src");
+const {isIdValid, isNullOrEmpty, isNameValid, getSteamAchievementsById, getSteamAchievementsByName} = require("../src");
 const chai = require("chai");
 const expect = chai.expect;
 const portal2Achievements = [
@@ -387,6 +387,22 @@ describe("isIdValid", () => {
     });
 });
 
+describe("isNullOrEmpty", () => {
+    const falseTests = ["Team Fortress 2", "Portal 2", " "];
+    const trueTests = [undefined, null, ""];
+
+    falseTests.forEach((string) => {
+        it(`expect [${string}] to be false`, () => {
+            expect(isNullOrEmpty(string)).to.be.false;
+        })
+    })
+    trueTests.forEach((string) => {
+        it(`expect [${string}] to be true`, () => {
+            expect(isNullOrEmpty(string)).to.be.true;
+        })
+    })
+})
+
 describe("isNameValid", () => {
     const falseTests = ["", " ", "%20", undefined, null];
     const trueTests = ["Team Fortress 2"];
@@ -425,18 +441,15 @@ describe("getSteamAchievementsById", () => {
     })
 });
 
-// describe("getSteamAchievementsByName", () => {
-//     const falseTests = ["", undefined, null];
-//     const trueTest = portal2Achievements;
-//
-//     falseTests.forEach((string) => {
-//         it(`expect [${string}] to throw TypeError`, async () => {
-//             const app = await getSteamAchievementsByName(string);
-//             expect(app).to.throw(TypeError);
-//         })
-//     });
-//     it(`expect [Portal 2 Achievements] to be true`, async () => {
-//         const app = await getSteamAchievementsByName("Portal 2");
-//         expect(app).to.eql(trueTest);
-//     })
-// });
+describe("getSteamAchievementsByName", () => {
+    const errorTests = ["", " ", undefined, null];
+    errorTests.forEach((error) => {
+        it(`expect [${error}] to throw TypeError`, async () => {
+            try {
+                return await getSteamAchievementsByName(error);
+            } catch (err) {
+                return expect(err.message).to.eql("Invalid/no app provided");
+            }
+        })
+    })
+});

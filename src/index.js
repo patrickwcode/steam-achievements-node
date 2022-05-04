@@ -169,6 +169,7 @@ app.get("/applist-filter", (req, res) => {
 
 module.exports = {
     isIdValid,
+    isNullOrEmpty,
     isNameValid,
     getSteamAchievementsById,
     getSteamAchievementsByName,
