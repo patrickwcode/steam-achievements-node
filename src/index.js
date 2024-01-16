@@ -4,7 +4,6 @@ const steamWebApiKey = process.env.STEAM_WEB_API_KEY;
 const SteamAPI = require("steamapi");
 const steam = new SteamAPI(steamWebApiKey);
 const app = express();
-const server = app.listen();
 let cachedAppList = {};
 const idRegex = /^[\d]+$/;
 
@@ -87,19 +86,11 @@ app.get("/achievements", async (req, res) => {
   const id = req.query.id;
   const name = req.query.name;
   if (isNullOrEmpty(id) && isNullOrEmpty(name)) {
-    res
-      .status(400)
-      .send(
-        "Bad Request. Either the 'id' or 'name' query parameter must be set."
-      );
+    res.status(400).send("Bad Request. Either the 'id' or 'name' query parameter must be set.");
     return;
   }
   if (!isIdValid(id) && !isNameValid(name)) {
-    res
-      .status(400)
-      .send(
-        "Bad Request. Either the 'id' or 'name' query parameter must be set."
-      );
+    res.status(400).send("Bad Request. Either the 'id' or 'name' query parameter must be set.");
     return;
   }
   try {
@@ -152,44 +143,49 @@ app.get("/applist-filter", (req, res) => {
     res.status(400).send("Bad Request. 'name' query parameter must be set.");
     return;
   }
-  let counter = 0;
+  let numOfApps = 0;
+
+  const checkAppForPlayers = async (id) => {
+    return await steam.getGamePlayers(id);
+  }
 
   const filteredApps = Object.keys(cachedAppList)
     .filter((key) => key.includes(name))
-    .reduce(async (apps, key) => {
-      if (counter <= 10) {
-        try {
-          if ((await steam.getGamePlayers([key].appid)) > 0) {
-            // console.log("This works at " + key);
-            apps[key] = cachedAppList[key];
-            counter++;
-          }
-        } catch (err) {
-          console.error(err);
+    .reduce((apps, key) => {
+      // if (numOfApps < 20) {
+      try {
+        apps[key] = cachedAppList[key];
+        numOfApps++;
+      } catch (err) {
+        console.error(err);
 
-          throw (err);
-        }
+        throw (err);
       }
+      // }
+      // Filters apps that have 0 players.
+      // Object.keys(apps).filter(async (app) => {
+      //   await appPlayers(app) <= 0
+      // })
+
       return apps;
     }, {});
-  // res.send(Object.keys(filteredApps).splice(1, 30));
-  res.send(filteredApps);
+
+  const filteredAppsWithPlayers = Object.keys(filteredApps).filter(async (app) => {
+    console.log(app);
+    if (await checkAppForPlayers(app.appid) > 0) {
+      console.log("_________________________HEY I HAVE PLAYERS")
+      return app;
+    }
+  })
+
+  // FIX FILTERED APPS FOR FINDING ONES WITH PLAYERS
+  // MAYBE DON'T USE FILTER AND DO OBJECT.ENTRIES
+
+  res.send(filteredAppsWithPlayers);
   res.status(500).send("Server error.");
 });
 
-// const filteredApps = Object.keys(cachedAppList)
-//     .filter((key) => key.includes(name))
-//     .reduce((apps, key) => {
-//         if (counter <= 100) {
-//             apps[key] = cachedAppList[key];
-//             counter++;
-//         }
-//         return apps;
-//     }, {});
-// // res.send(Object.keys(filteredApps).splice(1, 30));
-// res.send(filteredApps);
-// res.status(500).send("Server error.");
-// });
+
 
 module.exports = {
   isIdValid,
@@ -206,9 +202,11 @@ const init = async () => {
   } catch (err) {
     console.error("Server error getting App List.");
   }
-  app.listen(10000);
+  app.listen(10000, '127.0.0.1', function () {
+    console.log("... port %d in %s mode", 10000, '127.0.0.1');
+  });
   console.log("ExpressJS Server Started.");
 };
 
 init();
-// setInterval(init, 86400000);  // 24 hours
+// setInterval(init, 86400000);  // reset connection in 24 hours
