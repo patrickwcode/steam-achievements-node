@@ -132,7 +132,7 @@ app.get("/applist", (req, res) => {
   res.status(500).send("Server error.");
 });
 
-app.get("/applist-filter", (req, res) => {
+app.get("/applist-filter", async (req, res) => {
   const name = req.query.name;
   if (isNullOrEmpty(name)) {
     res.status(400).send("Bad Request. 'name' query parameter must be set.");
@@ -145,47 +145,19 @@ app.get("/applist-filter", (req, res) => {
   }
   let numOfApps = 0;
 
-  const checkAppForPlayers = async (id) => {
-    return await steam.getGamePlayers(id);
-  }
-
   const filteredApps = Object.keys(cachedAppList)
     .filter((key) => key.includes(name))
     .reduce((apps, key) => {
-      // if (numOfApps < 20) {
-      try {
+      if (numOfApps < 50) {
         apps[key] = cachedAppList[key];
         numOfApps++;
-      } catch (err) {
-        console.error(err);
-
-        throw (err);
       }
-      // }
-      // Filters apps that have 0 players.
-      // Object.keys(apps).filter(async (app) => {
-      //   await appPlayers(app) <= 0
-      // })
-
       return apps;
     }, {});
 
-  const filteredAppsWithPlayers = Object.keys(filteredApps).filter(async (app) => {
-    console.log(app);
-    if (await checkAppForPlayers(app.appid) > 0) {
-      console.log("_________________________HEY I HAVE PLAYERS")
-      return app;
-    }
-  })
-
-  // FIX FILTERED APPS FOR FINDING ONES WITH PLAYERS
-  // MAYBE DON'T USE FILTER AND DO OBJECT.ENTRIES
-
-  res.send(filteredAppsWithPlayers);
+  res.send(filteredApps);
   res.status(500).send("Server error.");
 });
-
-
 
 module.exports = {
   isIdValid,
