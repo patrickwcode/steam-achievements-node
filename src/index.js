@@ -144,6 +144,7 @@ app.get("/applist-filter", async (req, res) => {
     return;
   }
   let numOfApps = 0;
+  let appsWithPlayers = {};
 
   const filteredApps = Object.keys(cachedAppList)
     .filter((key) => key.includes(name))
@@ -155,8 +156,25 @@ app.get("/applist-filter", async (req, res) => {
       return apps;
     }, {});
 
-  res.send(filteredApps);
-  res.status(500).send("Server error.");
+  const getAppsWithPlayers = async () => {
+    try {
+      for (const app in filteredApps) {
+        if (await steam.getGamePlayers(filteredApps[app].appid) > 0) {
+          console.log(await steam.getGamePlayers(filteredApps[app].appid))
+          appsWithPlayers[app] = filteredApps[app];
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      // res.status(500).send("Server Error");
+
+      throw (err);
+    } finally {
+      res.send(appsWithPlayers);
+    }
+  }
+
+  await getAppsWithPlayers();
 });
 
 module.exports = {
