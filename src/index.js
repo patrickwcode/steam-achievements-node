@@ -160,7 +160,6 @@ app.get("/applist-filter", async (req, res) => {
     try {
       for (const app in filteredApps) {
         if (await steam.getGamePlayers(filteredApps[app].appid) > 0) {
-          console.log(await steam.getGamePlayers(filteredApps[app].appid))
           appsWithPlayers[app] = filteredApps[app];
         }
       }
