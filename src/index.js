@@ -2,12 +2,7 @@ const express = require("express");
 const process = require("process");
 const steamWebApiKey = process.env.STEAM_WEB_API_KEY;
 const SteamAPI = require("steamapi");
-const steamWeb = require("steam-web");
 const steam = new SteamAPI(steamWebApiKey);
-const steam2 = new steamWeb({
-  apiKey: steamWebApiKey,
-  format: "json", //optional ['json', 'xml', 'vdf']
-});
 const app = express();
 let cachedAppList = {};
 const idRegex = /^[\d]+$/;
@@ -91,19 +86,11 @@ app.get("/achievements", async (req, res) => {
   const id = req.query.id;
   const name = req.query.name;
   if (isNullOrEmpty(id) && isNullOrEmpty(name)) {
-    res
-      .status(400)
-      .send(
-        "Bad Request. Either the 'id' or 'name' query parameter must be set."
-      );
+    res.status(400).send("Bad Request. Either the 'id' or 'name' query parameter must be set.");
     return;
   }
   if (!isIdValid(id) && !isNameValid(name)) {
-    res
-      .status(400)
-      .send(
-        "Bad Request. Either the 'id' or 'name' query parameter must be set."
-      );
+    res.status(400).send("Bad Request. Either the 'id' or 'name' query parameter must be set.");
     return;
   }
   try {
@@ -162,8 +149,7 @@ app.get("/applist-filter", async (req, res) => {
   const filteredApps = Object.keys(cachedAppList)
     .filter((key) => key.includes(name))
     .reduce((apps, key) => {
-      if (numOfApps < 100) {
-        console.log(key);
+      if (numOfApps < 50) {
         apps[key] = cachedAppList[key];
         numOfApps++;
       }
@@ -172,38 +158,20 @@ app.get("/applist-filter", async (req, res) => {
 
   const getAppsWithPlayers = async () => {
     try {
-      console.log("Started getAppsWithPlayers");
       for (const app in filteredApps) {
-        // if (await steam.getGamePlayers(filteredApps[app].appid) > 0) {
-        //   appsWithPlayers[app] = filteredApps[app];
-        // }
-        await steam2.getGlobalAchievementPercentagesForApp({
-          gameid: filteredApps[app].appid,
-          callback: async (err, achievementsData) => {
-            try {
-              if (achievementsData !== undefined) {
-                console.log("GOT ONE HERE");
-                appsWithPlayers[app] = filteredApps[app];
-              }
-            } catch (err) {
-              console.error(err);
-
-              throw err;
-            }
-          },
-        });
+        if (await steam.getGamePlayers(filteredApps[app].appid) > 0) {
+          appsWithPlayers[app] = filteredApps[app];
+        }
       }
     } catch (err) {
-      console.log("Error in getAppsWithPlayers");
       console.error(err);
       // res.status(500).send("Server Error");
 
-      throw err;
+      throw (err);
     } finally {
-      console.log("SENDING NOW apps with players = " + appsWithPlayers);
       res.send(appsWithPlayers);
     }
-  };
+  }
 
   await getAppsWithPlayers();
 });
@@ -223,8 +191,8 @@ const init = async () => {
   } catch (err) {
     console.error("Server error getting App List.");
   }
-  app.listen(10000, "127.0.0.1", function () {
-    console.log("... port %d in %s mode", 10000, "127.0.0.1");
+  app.listen(10000, '127.0.0.1', function () {
+    console.log("... port %d in %s mode", 10000, '127.0.0.1');
   });
   console.log("ExpressJS Server Started.");
 };
