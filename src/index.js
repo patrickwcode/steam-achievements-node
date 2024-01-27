@@ -2,12 +2,7 @@ const express = require("express");
 const process = require("process");
 const steamWebApiKey = process.env.STEAM_WEB_API_KEY;
 const SteamAPI = require("steamapi");
-const steamWeb = require("steam-web");
 const steam = new SteamAPI(steamWebApiKey);
-const steam2 = new steamWeb({
-  apiKey: steamWebApiKey,
-  format: "json", //optional ['json', 'xml', 'vdf']
-});
 const app = express();
 let cachedAppList = {};
 const idRegex = /^[\d]+$/;
@@ -157,55 +152,42 @@ app.get("/applist-filter", async (req, res) => {
     return;
   }
   let numOfApps = 0;
-  let appsWithPlayers = {};
+  let appsWithAchievements = {};
 
   const filteredApps = Object.keys(cachedAppList)
     .filter((key) => key.includes(name))
     .reduce((apps, key) => {
-      if (numOfApps < 100) {
-        console.log(key);
+      console.log(key);
+      if (numOfApps < 60) {
         apps[key] = cachedAppList[key];
         numOfApps++;
       }
       return apps;
     }, {});
 
-  const getAppsWithPlayers = async () => {
+  const checkAppListForAchievements = async () => {
     try {
-      console.log("Started getAppsWithPlayers");
       for (const app in filteredApps) {
-        // if (await steam.getGamePlayers(filteredApps[app].appid) > 0) {
-        //   appsWithPlayers[app] = filteredApps[app];
-        // }
-        await steam2.getGlobalAchievementPercentagesForApp({
-          gameid: filteredApps[app].appid,
-          callback: async (err, achievementsData) => {
-            try {
-              if (achievementsData !== undefined) {
-                console.log("GOT ONE HERE");
-                appsWithPlayers[app] = filteredApps[app];
-              }
-            } catch (err) {
-              console.error(err);
-
-              throw err;
+        await fetch(
+          `http://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${filteredApps[app].appid}&format=json`
+        )
+          .then((response) => response.json())
+          .then((achievements) => {
+            if (Object.keys(achievements).length > 0) {
+              appsWithAchievements[app] = filteredApps[app];
             }
-          },
-        });
+          });
       }
     } catch (err) {
-      console.log("Error in getAppsWithPlayers");
       console.error(err);
-      // res.status(500).send("Server Error");
 
       throw err;
     } finally {
-      console.log("SENDING NOW apps with players = " + appsWithPlayers);
-      res.send(appsWithPlayers);
+      res.send(appsWithAchievements);
     }
   };
 
-  await getAppsWithPlayers();
+  await checkAppListForAchievements();
 });
 
 module.exports = {
@@ -230,4 +212,3 @@ const init = async () => {
 };
 
 init();
-// setInterval(init, 86400000);  // reset connection in 24 hours
