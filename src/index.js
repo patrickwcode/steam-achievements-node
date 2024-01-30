@@ -215,9 +215,9 @@ const checkCachedAppListForAchievements = async () => {
             cachedAppList[app].hasAchievements = false;
           }
         });
-      if (appCounter % 500 === 0) {
-        // console.log(`Apps Checked = ${appCounter}`);
-        process.stdout.write(`${appCounter}...`);
+      if (appCounter % 1000 === 0) {
+        console.log(`Apps Checked = ${appCounter}`);
+        // process.stdout.write(`${appCounter}...`);
       }
     }
   } catch (err) {
