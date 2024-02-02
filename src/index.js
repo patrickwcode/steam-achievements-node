@@ -154,111 +154,45 @@ app.get("/applist-filter", async (req, res) => {
     return;
   }
   let numOfApps = 0;
-  // let appsWithAchievements = {};
+  let filteredAppsWithAchievements = {};
 
   const filteredApps = Object.keys(cachedAppList)
     .filter((key) => key.includes(name))
     .reduce((apps, key) => {
-      if (numOfApps <= 10 && apps[key].hasAchievements) {
+      if (numOfApps <= 100) {
         apps[key] = cachedAppList[key];
         numOfApps++;
       }
       return apps;
     }, {});
 
-  // const checkFilteredAppsForAchievements = async () => {
-  //   try {
-  //     for (const app in filteredApps) {
-  //       await fetch(
-  //         `http://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${filteredApps[app].appid}&format=json`
-  //       )
-  //         .then((response) => response.json())
-  //         .then((data) => {
-  //           if (
-  //             Object.keys(data).length > 0 &&
-  //             data.achievementpercentages.achievements.length > 0
-  //           ) {
-  //             appsWithAchievements[app] = filteredApps[app];
-  //           }
-  //         });
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-
-  //     throw err;
-  //   } finally {
-  //     res.send(appsWithAchievements);
-  //   }
-  // };
-
-  await filteredApps();
-});
-
-const checkCachedAppListForAchievements = async () => {
-  try {
-    console.log("Checking Apps For Achievements...");
-    console.log("Apps Checked = ");
-    let appCounter = 0;
-    for (const app in cachedAppList) {
-      await fetch(
-        `http://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${cachedAppList[app].appid}&format=json`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          appCounter++;
-          if (
-            Object.keys(data).length > 0 &&
-            data.achievementpercentages.achievements.length > 0
-          ) {
-            cachedAppList[app].hasAchievements = true;
-          } else {
-            cachedAppList[app].hasAchievements = false;
-          }
-        });
-      if (appCounter % 1000 === 0) {
-        console.log(`Apps Checked = ${appCounter}`);
-        // process.stdout.write(`${appCounter}...`);
+  const checkFilteredAppsForAchievements = async () => {
+    try {
+      for (const app in filteredApps) {
+        await fetch(
+          `http://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${cachedAppList[app].appid}&format=json`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (
+              Object.keys(data).length > 0 &&
+              data.achievementpercentages.achievements.length > 0
+            ) {
+              filteredAppsWithAchievements[app] = filteredApps[app];
+            }
+          });
       }
+    } catch (err) {
+      console.error(err);
+
+      throw err;
+    } finally {
+      res.send(filteredAppsWithAchievements);
     }
-  } catch (err) {
-    console.error(err);
+  };
 
-    throw err;
-  } finally {
-    console.log(" ");
-    console.log("________________");
-    console.log("***** COMPLETED *****");
-    console.log("________________");
-    writeCachedAppListToFile();
-  }
-};
-
-const writeCachedAppListToFile = () => {
-  console.log("Writing to cachedAppList.json...");
-  try {
-    fs.writeFileSync("./cachedAppList.json", JSON.stringify(cachedAppList));
-  } catch (err) {
-    console.error(err);
-
-    throw err;
-  }
-};
-
-const readCachedAppListFromFile = async () => {
-  try {
-    console.log("Reading From cachedAppList.json...");
-    const appList = fs.readFileSync("./cachedAppList.json", "utf8");
-    console.log("*** FILE READ ***");
-    JSON.parse(appList);
-  } catch (err) {
-    console.error("Server error reading App List.");
-    console.log("Getting App List from Steam Web API...");
-    cachedAppList = await getAppList();
-    await checkCachedAppListForAchievements();
-
-    throw err;
-  }
-};
+  await checkFilteredAppsForAchievements();
+});
 
 module.exports = {
   isIdValid,
@@ -271,9 +205,9 @@ module.exports = {
 const init = async () => {
   console.error("ExpressJS Server Initializing...");
   try {
-    cachedAppList = await readCachedAppListFromFile();
+    cachedAppList = await getAppList();
   } catch (err) {
-    console.error("Server error getting App List.");
+    console.error("Server Error Getting App List.");
   }
   app.listen(10000, "127.0.0.1", function () {
     console.log("... port %d in %s mode", 10000, "127.0.0.1");
