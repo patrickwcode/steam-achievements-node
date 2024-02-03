@@ -178,7 +178,7 @@ app.get("/applist-filter", async (req, res) => {
             if (
               Object.keys(data).length > 0 &&
               data.achievementpercentages.achievements.length > 0 &&
-              numOfApps <= 6
+              numOfApps < 6
             ) {
               filteredAppsWithAchievements[app] = filteredApps[app];
               numOfApps++;
