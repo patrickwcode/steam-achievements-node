@@ -159,7 +159,7 @@ app.get("/applist-filter", async (req, res) => {
   const filteredApps = Object.keys(cachedAppList)
     .filter((key) => key.includes(name))
     .reduce((apps, key) => {
-      if (numOfApps <= 100) {
+      if (numOfApps <= 60) {
         apps[key] = cachedAppList[key];
         numOfApps++;
       }
@@ -168,6 +168,7 @@ app.get("/applist-filter", async (req, res) => {
 
   const checkFilteredAppsForAchievements = async () => {
     try {
+      let numOfApps = 0;
       for (const app in filteredApps) {
         await fetch(
           `http://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${cachedAppList[app].appid}&format=json`
@@ -176,9 +177,11 @@ app.get("/applist-filter", async (req, res) => {
           .then((data) => {
             if (
               Object.keys(data).length > 0 &&
-              data.achievementpercentages.achievements.length > 0
+              data.achievementpercentages.achievements.length > 0 &&
+              numOfApps <= 6
             ) {
               filteredAppsWithAchievements[app] = filteredApps[app];
+              numOfApps++;
             }
           });
       }
