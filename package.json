@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "chai-as-promised": "^7.1.1",
+    "express": "^4.18.2",
+    "steam-web": "^0.7.0",
+    "steamapi": "^2.2.0"
+  },
+  "name": "steam-achievements-node",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/**/*.spec.js",
+    "run": "node src/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "mocha": "^9.2.2",
+    "prettier": "^2.5.1"
+  }
+}
